@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CIVICFORCE | Tamil Nadu Societal Problem & Resolution Engine</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <!-- Leaflet CDN for real live interactive maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <style>
+    :root {
+      --cf-primary: #0B5345;
+      --cf-primary-dark: #073B31;
+      --cf-emerald: #10B981;
+      --cf-gold: #D4AC0D;
+      --cf-saffron: #E67E22;
+    }
+    .custom-pulse-pin {
+      background-color: #C0392B;
+      border: 2px solid #FFFFFF;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      box-shadow: 0 0 10px rgba(192, 57, 43, 0.9);
+      animation: pulseAnim 1.5s infinite;
+    }
+    .custom-norm-pin {
+      background-color: #0B5345;
+      border: 2px solid #FFFFFF;
+      border-radius: 50%;
+      width: 14px;
+      height: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    @keyframes pulseAnim {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased min-h-screen flex flex-col font-sans">
+
+  <!-- Top Ribbon -->
+  <div class="h-1 w-full bg-gradient-to-r from-amber-500 via-emerald-400 to-teal-800"></div>
+
+  <!-- Official Platform Bar -->
+  <div class="bg-[#073B31] text-[#E8F8F5] text-xs py-1.5 px-4 sm:px-8 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="font-bold">CIVICFORCE · Smart India Hackathon (SIH-26043) Societal Action Network</span>
+    </div>
+    <div class="hidden sm:flex items-center gap-4 text-emerald-200">
+      <span>Emergency Civic Desk: <strong>1100</strong> / <strong>1913</strong></span>
+      <span>•</span>
+      <span id="session-status-badge" class="px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-300">Public Citizen Mode</span>
+    </div>
+  </div>
+
+  <!-- Main Navigation Header -->
+  <header class="bg-[var(--card)] border-b border-[var(--border)] sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8 py-3 flex justify-between items-center gap-4">
+      <!-- Brand Logo & Titles -->
+      <a href="#" onclick="showPage('home'); return false;" class="flex items-center gap-3 group">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#0B5345] to-[#073B31] flex items-center justify-center text-amber-400 font-black text-xl border-2 border-amber-400 shadow-md">
+          CF
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-1.5">
+            <span class="font-black text-xl text-[#0B5345] dark:text-emerald-400 tracking-tight">CIVICFORCE</span>
+            <span class="bg-amber-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded tracking-wide">TN</span>
+          </div>
+          <span class="text-xs text-[var(--muted-foreground)] font-semibold">Tamil Nadu Societal Problem & Resolution Engine</span>
+        </div>
+      </a>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center gap-1 text-sm font-bold">
+        <button id="nav-home" onclick="showPage('home')" class="px-3.5 py-2 rounded-lg bg-[#0B5345] text-white">Home</button>
+        <button id="nav-challenges" onclick="showPage('challenges')" class="px-3.5 py-2 rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)]">Browse Challenges</button>
+        <button id="nav-map" onclick="showPage('map')" class="px-3.5 py-2 rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)] flex items-center gap-1">
+          <span>🗺️</span> Live District Map
+        </button>
+        <button id="nav-admin" onclick="handleAdminNavClick()" class="px-3.5 py-2 rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)] flex items-center gap-1.5">
+          <span>🛡️</span> Admin Queue
+        </button>
+      </nav>
+
+      <!-- Action & Auth Buttons -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button onclick="showPage('report')" class="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white text-xs sm:text-sm font-bold px-3.5 sm:px-4 py-2 rounded-xl shadow-sm flex items-center gap-1.5 transition-transform hover:scale-[1.02]">
+          <span>✍️</span> Report Problem
+        </button>
+        <button id="auth-header-btn" onclick="handleAuthButtonClick()" class="border border-[var(--border)] hover:bg-[var(--secondary)] text-[var(--foreground)] text-xs sm:text-sm font-bold px-3 py-2 rounded-xl">
+          🔐 Admin Sign-in
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Prototype View Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8">
+
+    <!-- ================= PAGE 1: HOME ================= -->
+    <div id="page-home" class="space-y-8">
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--card)] via-[var(--card)] to-[var(--secondary)] border border-[var(--border)] p-6 sm:p-10 shadow-sm">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 mb-4">
+          <span>⚡</span> Action-Driven Civic Tech Platform
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-black tracking-tight mb-4 leading-tight">
+          Mobilizing Solutions for <span class="text-[#0B5345] dark:text-emerald-400">Tamil Nadu's</span> Societal Challenges
+        </h1>
+        <p class="text-sm sm:text-base text-[var(--muted-foreground)] max-w-3xl leading-relaxed mb-6 font-medium">
+          CIVICFORCE connects citizen-reported societal issues directly with leading universities, corporate industry R&D, and municipal departments. Type your location to automatically point the live map and track verifiable resolution.
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <button onclick="showPage('report')" class="bg-[#0B5345] hover:bg-[#073B31] text-white text-sm font-bold px-5 py-3 rounded-xl shadow-md flex items-center gap-2">
+            <span>✍️</span> Report a Problem (Auto-pointing Map)
+          </button>
+          <button onclick="showPage('challenges')" class="border border-[var(--border)] hover:bg-[var(--secondary)] text-sm font-bold px-5 py-3 rounded-xl flex items-center gap-2">
+            <span>🔍</span> Browse Challenge Register
+          </button>
+          <button onclick="showPage('map')" class="border border-[var(--border)] hover:bg-[var(--secondary)] text-sm font-bold px-5 py-3 rounded-xl flex items-center gap-2">
+            <span>🗺️</span> Live District Map
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Counters Bar -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm">
+          <div class="text-3xl font-black text-[var(--foreground)]" id="stat-total">7</div>
+          <div class="text-xs sm:text-sm text-[var(--muted-foreground)] font-semibold mt-1">Total Challenges in DB</div>
+        </div>
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm">
+          <div class="text-3xl font-black text-emerald-600 dark:text-emerald-400">2</div>
+          <div class="text-xs sm:text-sm text-[var(--muted-foreground)] font-semibold mt-1">Problems Resolved</div>
+        </div>
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm">
+          <div class="text-3xl font-black text-amber-600 dark:text-amber-400">6</div>
+          <div class="text-xs sm:text-sm text-[var(--muted-foreground)] font-semibold mt-1">Active Districts</div>
+        </div>
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm">
+          <div class="text-3xl font-black text-blue-600 dark:text-blue-400">86%</div>
+          <div class="text-xs sm:text-sm text-[var(--muted-foreground)] font-semibold mt-1">Triage Resolution Rate</div>
+        </div>
+      </div>
+
+      <!-- 4-Stage Resolution Pipeline -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 sm:p-8">
+        <h2 class="text-xl font-black mb-1">How Societal Problems Travel to Resolution</h2>
+        <p class="text-xs sm:text-sm text-[var(--muted-foreground)] mb-6">4 transparent stages connecting citizens, AI classification, and expert partner institutions.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-[var(--secondary)]/50 rounded-xl p-4 border border-[var(--border)]">
+            <div class="w-8 h-8 rounded-full bg-[#0B5345] text-white flex items-center justify-center font-black text-xs mb-3">1</div>
+            <h3 class="font-bold text-sm mb-1">Citizen Submits</h3>
+            <p class="text-xs text-[var(--muted-foreground)]">Type your location — map automatically points to it. No category choice needed.</p>
+          </div>
+          <div class="bg-[var(--secondary)]/50 rounded-xl p-4 border border-[var(--border)]">
+            <div class="w-8 h-8 rounded-full bg-[#0B5345] text-white flex items-center justify-center font-black text-xs mb-3">2</div>
+            <h3 class="font-bold text-sm mb-1">Automated AI Triage</h3>
+            <p class="text-xs text-[var(--muted-foreground)]">AI tags category, calculates urgency & matches university or industry partner.</p>
+          </div>
+          <div class="bg-[var(--secondary)]/50 rounded-xl p-4 border border-[var(--border)]">
+            <div class="w-8 h-8 rounded-full bg-[#0B5345] text-white flex items-center justify-center font-black text-xs mb-3">3</div>
+            <h3 class="font-bold text-sm mb-1">Admin Assignment</h3>
+            <p class="text-xs text-[var(--muted-foreground)]">Official reviewer confirms classification and assigns to expert partner.</p>
+          </div>
+          <div class="bg-[var(--secondary)]/50 rounded-xl p-4 border border-[var(--border)]">
+            <div class="w-8 h-8 rounded-full bg-[#0B5345] text-white flex items-center justify-center font-black text-xs mb-3">4</div>
+            <h3 class="font-bold text-sm mb-1">Public Live Timeline</h3>
+            <p class="text-xs text-[var(--muted-foreground)]">Citizens track real-time resolution with private contact shielding.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent 6 Reports -->
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <h2 class="text-xl font-bold">Recent Societal Challenges</h2>
+            <p class="text-xs sm:text-sm text-[var(--muted-foreground)]">Live citizen reports from across Tamil Nadu</p>
+          </div>
+          <button onclick="showPage('challenges')" class="text-xs sm:text-sm font-bold text-[#0B5345] dark:text-emerald-400 hover:underline">
+            View All Reports →
+          </button>
+        </div>
+        <div id="home-reports-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 2: REPORT A PROBLEM (AUTO-POINTING MAP) ================= -->
+    <div id="page-report" class="hidden max-w-3xl mx-auto space-y-6">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-black mb-1">Report a Societal Challenge</h1>
+        <p class="text-sm text-[var(--muted-foreground)]">
+          Enter where the issue is. The live map will <strong>automatically point directly to your location</strong> without you having to hunt or click manually.
+        </p>
+      </div>
+
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 sm:p-8 shadow-sm">
+        <form onsubmit="handleFormSubmit(event)" class="space-y-5">
+          <!-- Title -->
+          <div>
+            <label class="block text-sm font-bold mb-1.5">Problem Title <span class="text-red-500">*</span></label>
+            <input type="text" id="form-title" required class="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="e.g. Major water pipeline burst flooding school road junction">
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label class="block text-sm font-bold mb-1.5">Detailed Description <span class="text-red-500">*</span></label>
+            <textarea id="form-desc" required rows="4" class="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Describe the size of damage, how long it has persisted, and the direct danger to safety, traffic, or water supply..."></textarea>
+          </div>
+
+          <!-- District -->
+          <div>
+            <label class="block text-sm font-bold mb-1.5">District (Tamil Nadu) <span class="text-red-500">*</span></label>
+            <select id="form-district" required onchange="onDistrictSelected(this.value)" class="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+              <option value="">-- Choose District (Map will auto-center) --</option>
+              <option value="Ariyalur">Ariyalur</option>
+              <option value="Chengalpattu">Chengalpattu</option>
+              <option value="Chennai">Chennai</option>
+              <option value="Coimbatore">Coimbatore</option>
+              <option value="Cuddalore">Cuddalore</option>
+              <option value="Dharmapuri">Dharmapuri</option>
+              <option value="Dindigul">Dindigul</option>
+              <option value="Erode">Erode</option>
+              <option value="Kallakurichi">Kallakurichi</option>
+              <option value="Kancheepuram">Kancheepuram</option>
+              <option value="Kanniyakumari">Kanniyakumari</option>
+              <option value="Karur">Karur</option>
+              <option value="Krishnagiri">Krishnagiri</option>
+              <option value="Madurai">Madurai</option>
+              <option value="Mayiladuthurai">Mayiladuthurai</option>
+              <option value="Nagapattinam">Nagapattinam</option>
+              <option value="Namakkal">Namakkal</option>
+              <option value="The Nilgiris">The Nilgiris</option>
+              <option value="Perambalur">Perambalur</option>
+              <option value="Pudukkottai">Pudukkottai</option>
+              <option value="Ramanathapuram">Ramanathapuram</option>
+              <option value="Ranipet">Ranipet</option>
+              <option value="Salem">Salem</option>
+              <option value="Sivaganga">Sivaganga</option>
+              <option value="Tenkasi">Tenkasi</option>
+              <option value="Thanjavur">Thanjavur</option>
+              <option value="Theni">Theni</option>
+              <option value="Thoothukudi">Thoothukudi</option>
+              <option value="Tiruchirappalli">Tiruchirappalli</option>
+              <option value="Tirunelveli">Tirunelveli</option>
+              <option value="Tirupathur">Tirupathur</option>
+              <option value="Tiruppur">Tiruppur</option>
+              <option value="Tiruvallur">Tiruvallur</option>
+              <option value="Tiruvarur">Tiruvarur</option>
+              <option value="Tiruvannamalai">Tiruvannamalai</option>
+              <option value="Vellore">Vellore</option>
+              <option value="Viluppuram">Viluppuram</option>
+              <option value="Virudhunagar">Virudhunagar</option>
+            </select>
+          </div>
+
+          <!-- AUTO-POINTING LOCATION INPUT -->
+          <div>
+            <label class="block text-sm font-bold mb-1.5">
+              Enter Location of Issue (Map Auto-points Here) <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="form-location" 
+              required
+              oninput="handleLocationInput(this.value)" 
+              class="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium" 
+              placeholder="Type area or street name (e.g. Anna Salai, Ukkadam, Srirangam, Gandhipuram, Periyar Bus Stand)..."
+            >
+            
+            <!-- Quick Tamil Nadu Locations -->
+            <div class="flex flex-wrap gap-1.5 mt-2">
+              <span class="text-[11px] text-[var(--muted-foreground)] font-semibold self-center">Try clicking:</span>
+              <button type="button" onclick="quickLocate('Anna Salai, Chennai', 13.0418, 80.2481, 'Chennai')" class="text-xs px-2.5 py-1 rounded-md bg-[var(--secondary)] hover:bg-[#0B5345] hover:text-white font-medium border border-[var(--border)]">Anna Salai, Chennai</button>
+              <button type="button" onclick="quickLocate('Ukkadam, Coimbatore', 10.9931, 76.9612, 'Coimbatore')" class="text-xs px-2.5 py-1 rounded-md bg-[var(--secondary)] hover:bg-[#0B5345] hover:text-white font-medium border border-[var(--border)]">Ukkadam, Coimbatore</button>
+              <button type="button" onclick="quickLocate('Periyar Bus Stand, Madurai', 9.9195, 78.1193, 'Madurai')" class="text-xs px-2.5 py-1 rounded-md bg-[var(--secondary)] hover:bg-[#0B5345] hover:text-white font-medium border border-[var(--border)]">Periyar, Madurai</button>
+              <button type="button" onclick="quickLocate('Hasthampatti, Salem', 11.6742, 78.1468, 'Salem')" class="text-xs px-2.5 py-1 rounded-md bg-[var(--secondary)] hover:bg-[#0B5345] hover:text-white font-medium border border-[var(--border)]">Hasthampatti, Salem</button>
+              <button type="button" onclick="quickLocate('Srirangam, Trichy', 10.8560, 78.6948, 'Tiruchirappalli')" class="text-xs px-2.5 py-1 rounded-md bg-[var(--secondary)] hover:bg-[#0B5345] hover:text-white font-medium border border-[var(--border)]">Srirangam, Trichy</button>
+            </div>
+
+            <!-- Auto-pinned Confirmation Badge -->
+            <div id="location-confirm-badge" class="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-bold">
+              <span>📍 Automatically Pinned to:</span>
+              <span id="location-confirm-text">Chennai Central (13.0827° N, 80.2707° E)</span>
+            </div>
+          </div>
+
+          <!-- LIVE INTERACTIVE LEAFLET MAP -->
+          <div>
+            <label class="block text-sm font-bold mb-1.5">Live Interactive Map</label>
+            <div id="proto-report-map" class="h-64 rounded-xl border border-[var(--border)] shadow-inner"></div>
+            <p class="text-[11px] text-[var(--muted-foreground)] mt-1.5">
+              The map automatically glides to the location as you type. You can also drag the pin to adjust.
+            </p>
+          </div>
+
+          <!-- Up to 3 Photo Uploads -->
+          <div>
+            <label class="block text-sm font-bold mb-1.5">Attach Photographs (Up to 3, max 5MB)</label>
+            <div class="border-2 border-dashed border-[var(--border)] rounded-xl p-4 text-center cursor-pointer hover:border-emerald-500 transition-colors bg-[var(--secondary)]/30" onclick="addSamplePhoto()">
+              <div class="text-xl mb-1">📷</div>
+              <p class="text-xs font-bold">Click to attach photo evidence</p>
+              <p class="text-[11px] text-[var(--muted-foreground)]" id="photo-count-label">0 of 3 photos added</p>
+            </div>
+            <div id="photos-preview-box" class="flex gap-2 mt-2"></div>
+          </div>
+
+          <!-- Automated AI Notice -->
+          <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3.5 text-xs text-emerald-800 dark:text-emerald-300">
+            <strong>🤖 Automated AI Triage:</strong> Category selection is not required. Our AI engine automatically classifies the problem category, urgency level, and suggested partner type upon submission.
+          </div>
+
+          <!-- Optional Citizen Contact -->
+          <div class="border-t border-[var(--border)] pt-4 space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Optional Citizen Contact</span>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold">🔒 Strictly Confidential</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input type="text" id="form-name" class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs" placeholder="Full Name (optional)">
+              <input type="tel" id="form-phone" class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs" placeholder="Phone Number (optional)">
+            </div>
+            <input type="email" id="form-email" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs" placeholder="Email Address (optional)">
+            <p class="text-[11px] text-[var(--muted-foreground)]">Your contact details are never shown on public reports. Only authorized reviewers can view them.</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-3 pt-2">
+            <button type="submit" class="flex-1 bg-[#0B5345] hover:bg-[#073B31] text-white font-bold text-sm py-3 rounded-xl shadow-md transition-transform hover:scale-[1.01]">
+              🚀 Submit Report & Run AI Triage
+            </button>
+            <button type="button" onclick="showPage('home')" class="border border-[var(--border)] px-5 py-3 rounded-xl text-sm font-semibold">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 3: ALL REPORTS ================= -->
+    <div id="page-challenges" class="hidden space-y-6">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-black mb-1">Public Challenge Register</h1>
+        <p class="text-sm text-[var(--muted-foreground)]">Browse and search societal challenges submitted across Tamil Nadu</p>
+      </div>
+
+      <!-- Filters Toolbar -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 flex flex-wrap gap-3 items-center">
+        <div class="flex-1 min-w-[240px]">
+          <input type="text" id="filter-search" oninput="filterReports()" placeholder="Search title, description, or landmark..." class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs">
+        </div>
+        <select id="filter-district-select" onchange="filterReports()" class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs font-semibold">
+          <option value="All">All Districts</option>
+          <option value="Chennai">Chennai</option>
+          <option value="Coimbatore">Coimbatore</option>
+          <option value="Madurai">Madurai</option>
+          <option value="Salem">Salem</option>
+          <option value="Tiruchirappalli">Tiruchirappalli</option>
+          <option value="Krishnagiri">Krishnagiri</option>
+          <option value="Tirunelveli">Tirunelveli</option>
+        </select>
+        <select id="filter-category-select" onchange="filterReports()" class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs font-semibold">
+          <option value="All">All Categories</option>
+          <option value="Roads & footpaths">Roads & footpaths</option>
+          <option value="Water & drainage">Water & drainage</option>
+          <option value="Street lighting">Street lighting</option>
+          <option value="Waste & sanitation">Waste & sanitation</option>
+          <option value="Public spaces">Public spaces</option>
+        </select>
+        <select id="filter-status-select" onchange="filterReports()" class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs font-semibold">
+          <option value="All">All Statuses</option>
+          <option value="New">New</option>
+          <option value="Under review">Under review</option>
+          <option value="Assigned">Assigned</option>
+          <option value="In progress">In progress</option>
+          <option value="Resolved">Resolved</option>
+        </select>
+        <button onclick="resetFiltersUI()" class="px-3 py-2 border border-[var(--border)] rounded-lg text-xs font-bold hover:bg-[var(--secondary)]">
+          Reset Filters
+        </button>
+      </div>
+
+      <!-- Reports List Container -->
+      <div id="all-reports-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- ================= PAGE 4: REPORT DETAIL ================= -->
+    <div id="page-detail" class="hidden max-w-3xl mx-auto space-y-6">
+      <div class="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
+        <button onclick="showPage('challenges')" class="font-bold text-[#0B5345] dark:text-emerald-400 hover:underline">← Back to All Reports</button>
+      </div>
+
+      <div id="detail-content" class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
+        <!-- Populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- ================= PAGE 5: LIVE FULLY FUNCTIONAL DISTRICT MAP ================= -->
+    <div id="page-map" class="hidden space-y-6">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-black mb-1">Live Interactive Tamil Nadu Map</h1>
+        <p class="text-sm text-[var(--muted-foreground)]">Fully operational live OpenStreetMap rendering active incident pins and district clusters. Click any pin to inspect the report.</p>
+      </div>
+
+      <!-- Live Interactive Map Frame -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm space-y-4">
+        <div id="proto-live-map" class="h-96 rounded-xl border border-[var(--border)] shadow-inner"></div>
+
+        <!-- Legend & Attribution -->
+        <div class="flex justify-between items-center flex-wrap gap-4 text-xs text-[var(--muted-foreground)] pt-2 border-t border-[var(--border)]">
+          <div class="flex items-center gap-4 flex-wrap font-semibold">
+            <span>Pins:</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-[#0B5345]"></span> Normal Incident</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-[#C0392B] animate-ping"></span> High Urgency Incident</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500"></span> District Cluster</span>
+          </div>
+          <div>
+            Map data &copy; <a href="https://www.openstreetmap.org" target="_blank" class="underline">OpenStreetMap</a> contributors
+          </div>
+        </div>
+      </div>
+
+      <!-- District Count Cards (Click to Fly) -->
+      <h2 class="text-base font-bold">Quick District Centers (Click to Smooth Zoom)</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div onclick="flyToDistrict('Chennai', 13.0827, 80.2707)" class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-3 text-center cursor-pointer hover:border-emerald-500 hover:shadow-sm">
+          <div class="font-bold text-sm">Chennai</div>
+          <div class="text-xs text-emerald-600 font-bold mt-0.5">2 reports</div>
+        </div>
+        <div onclick="flyToDistrict('Coimbatore', 11.0168, 76.9558)" class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-3 text-center cursor-pointer hover:border-emerald-500 hover:shadow-sm">
+          <div class="font-bold text-sm">Coimbatore</div>
+          <div class="text-xs text-emerald-600 font-bold mt-0.5">1 report</div>
+        </div>
+        <div onclick="flyToDistrict('Madurai', 9.9252, 78.1198)" class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-3 text-center cursor-pointer hover:border-emerald-500 hover:shadow-sm">
+          <div class="font-bold text-sm">Madurai</div>
+          <div class="text-xs text-emerald-600 font-bold mt-0.5">1 report</div>
+        </div>
+        <div onclick="flyToDistrict('Salem', 11.6643, 78.1460)" class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-3 text-center cursor-pointer hover:border-emerald-500 hover:shadow-sm">
+          <div class="font-bold text-sm">Salem</div>
+          <div class="text-xs text-emerald-600 font-bold mt-0.5">1 report</div>
+        </div>
+        <div onclick="flyToDistrict('Tiruchirappalli', 10.7905, 78.7047)" class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-3 text-center cursor-pointer hover:border-emerald-500 hover:shadow-sm">
+          <div class="font-bold text-sm">Tiruchirappalli</div>
+          <div class="text-xs text-emerald-600 font-bold mt-0.5">1 report</div>
+        </div>
+        <div onclick="flyToDistrict('Tirunelveli', 8.7139, 77.7567)" class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-3 text-center cursor-pointer hover:border-emerald-500 hover:shadow-sm">
+          <div class="font-bold text-sm">Tirunelveli</div>
+          <div class="text-xs text-emerald-600 font-bold mt-0.5">1 report</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 6: STRICT ADMIN SIGN-IN ================= -->
+    <div id="page-login" class="hidden max-w-md mx-auto space-y-6 pt-6">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 sm:p-8 shadow-sm">
+        <div class="text-center mb-6">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0B5345] to-[#073B31] text-amber-400 font-black text-2xl flex items-center justify-center mx-auto mb-3 border-2 border-amber-400 shadow-sm">
+            CF
+          </div>
+          <h1 class="text-xl font-black">Official Admin Sign-in</h1>
+          <p class="text-xs text-[var(--muted-foreground)] mt-1">CIVICFORCE Reviewer Command Queue</p>
+        </div>
+
+        <!-- Error Notice -->
+        <div id="login-error-msg" class="hidden bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 p-3 rounded-xl text-xs font-bold mb-4 border border-red-300"></div>
+
+        <form onsubmit="handleStrictLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold mb-1">Administrator Official Email</label>
+            <input type="email" id="login-input-email" required class="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)] text-xs font-medium" placeholder="admin@tn.gov.in">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1">Password</label>
+            <input type="password" id="login-input-pwd" required class="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)] text-xs font-medium" placeholder="••••••••">
+          </div>
+
+          <div class="bg-[var(--secondary)] rounded-xl p-3 text-xs text-[var(--muted-foreground)] border border-[var(--border)]">
+            🔑 <strong>Admin Credentials:</strong><br>
+            Email: <code>admin@tn.gov.in</code><br>
+            Password: <code>Admin@1234</code>
+          </div>
+
+          <button type="submit" class="w-full bg-[#0B5345] hover:bg-[#073B31] text-white font-bold text-xs sm:text-sm py-3 rounded-xl shadow-md">
+            Verify Password & Unlock Queue →
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 7: ADMIN QUEUE (PROTECTED) ================= -->
+    <div id="page-admin" class="hidden space-y-6">
+      <div class="flex justify-between items-center flex-wrap gap-3">
+        <div>
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 text-xs font-bold mb-1">
+            <span>🛡️</span> Verified Official Admin Session
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-black">Admin Review Queue</h1>
+          <p class="text-xs sm:text-sm text-[var(--muted-foreground)]">
+            Logged in as <strong>State Coordinator (Admin)</strong> · <code>admin@tn.gov.in</code>
+          </p>
+        </div>
+        <button onclick="handleLogout()" class="px-3.5 py-2 border border-red-400 text-red-600 rounded-xl text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950">
+          Sign Out
+        </button>
+      </div>
+
+      <!-- Queue Status Tabs -->
+      <div class="flex gap-2 border-b border-[var(--border)] pb-2 overflow-x-auto text-xs font-bold">
+        <button onclick="setQueueTab('All')" class="queue-tab px-3.5 py-1.5 rounded-lg bg-[#0B5345] text-white" data-tab="All">All Queue (7)</button>
+        <button onclick="setQueueTab('New')" class="queue-tab px-3.5 py-1.5 rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)]" data-tab="New">New (2)</button>
+        <button onclick="setQueueTab('Under review')" class="queue-tab px-3.5 py-1.5 rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)]" data-tab="Under review">Under review (2)</button>
+        <button onclick="setQueueTab('Assigned')" class="queue-tab px-3.5 py-1.5 rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)]" data-tab="Assigned">Assigned (1)</button>
+        <button onclick="setQueueTab('In progress')" class="queue-tab px-3.5 py-1.5 rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)]" data-tab="In progress">In progress (1)</button>
+        <button onclick="setQueueTab('Resolved')" class="queue-tab px-3.5 py-1.5 rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)]" data-tab="Resolved">Resolved (1)</button>
+      </div>
+
+      <!-- Queue Table -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-x-auto shadow-sm">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-[var(--secondary)]/70 border-b border-[var(--border)] text-[var(--muted-foreground)] font-bold">
+            <tr>
+              <th class="p-3.5">ID</th>
+              <th class="p-3.5">Problem Title</th>
+              <th class="p-3.5">District</th>
+              <th class="p-3.5">AI Category</th>
+              <th class="p-3.5">Urgency</th>
+              <th class="p-3.5">Status</th>
+              <th class="p-3.5">Citizen Contact (Confidential)</th>
+              <th class="p-3.5 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="admin-queue-tbody" class="divide-y divide-[var(--border)]">
+            <!-- Populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 8: ADMIN REVIEW & TRIAGE EDITING ================= -->
+    <div id="page-admin-review" class="hidden max-w-3xl mx-auto space-y-6">
+      <div class="flex justify-between items-center">
+        <button onclick="showPage('admin')" class="text-xs font-bold text-[#0B5345] dark:text-emerald-400 hover:underline">
+          ← Back to Admin Queue
+        </button>
+        <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-[var(--secondary)] text-[#0B5345] dark:text-emerald-400" id="review-header-id">
+          TNCR-2048
+        </span>
+      </div>
+
+      <!-- Confidential Contact Box -->
+      <div class="bg-[var(--card)] border-2 border-emerald-600 rounded-xl p-4 shadow-sm space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-emerald-800 dark:text-emerald-300">🔒 Confidential Citizen Contact (Admin Eyes Only)</span>
+          <span class="text-[10px] bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 px-2 py-0.5 rounded-full font-bold">Protected</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs" id="review-contact-box"></div>
+      </div>
+
+      <!-- Editable Triage Box -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm space-y-5">
+        <h2 class="text-base font-bold">🛠️ AI Triage Correction & Partner Assignment</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold mb-1">Category</label>
+            <select id="review-category" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs font-semibold">
+              <option value="Roads & footpaths">Roads & footpaths</option>
+              <option value="Water & drainage">Water & drainage</option>
+              <option value="Street lighting">Street lighting</option>
+              <option value="Waste & sanitation">Waste & sanitation</option>
+              <option value="Public spaces">Public spaces</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1">Urgency Priority</label>
+            <select id="review-urgency" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs font-semibold">
+              <option value="Normal">Normal Priority</option>
+              <option value="High">⚡ High Urgency</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold mb-1">AI Summary (Editable)</label>
+          <textarea id="review-summary" rows="2" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs font-medium"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold mb-1">Assign Resolution Partner</label>
+          <select id="review-partner" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs font-semibold">
+            <option value="">-- No partner assigned yet --</option>
+            <optgroup label="Government Offices">
+              <option value="Greater Chennai Corporation (GCC)">Greater Chennai Corporation (GCC)</option>
+              <option value="TWAD Board">Tamil Nadu Water Supply & Drainage (TWAD)</option>
+              <option value="TANGEDCO Electricity Board">TANGEDCO (Electricity Board)</option>
+              <option value="Highways Department TN">Highways Department Tamil Nadu</option>
+            </optgroup>
+            <optgroup label="Universities & Research Institutes">
+              <option value="Anna University - Civil Dept">Anna University - Dept. of Civil Engineering</option>
+              <option value="IIT Madras Urban Center">IIT Madras - Centre for Urbanization</option>
+              <option value="NIT Trichy Lab">National Institute of Technology (NIT) Trichy</option>
+            </optgroup>
+            <optgroup label="Industry & Corporate CSR">
+              <option value="L&T Urban Infrastructure">Larsen & Toubro (L&T) Urban Infra</option>
+              <option value="TCS Foundation">TCS Foundation Chennai</option>
+              <option value="TVS Motor CSR">TVS Motor Community CSR</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold mb-1">Status</label>
+          <select id="review-status" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs font-semibold">
+            <option value="New">New</option>
+            <option value="Under review">Under review</option>
+            <option value="Assigned">Assigned</option>
+            <option value="In progress">In progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold mb-1">Public Timeline Update</label>
+          <input type="text" id="review-public-update" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs font-medium" placeholder="e.g. Field inspection completed. Repair scheduled within 48 hours.">
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button onclick="saveAdminReview()" class="flex-1 bg-[#0B5345] hover:bg-[#073B31] text-white font-bold text-xs sm:text-sm py-2.5 rounded-xl shadow-md">
+            💾 Save Changes & Update Timeline
+          </button>
+          <button onclick="showPage('admin')" class="border border-[var(--border)] px-4 py-2.5 rounded-xl text-xs font-semibold">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 9: PRIVACY ================= -->
+    <div id="page-privacy" class="hidden max-w-3xl mx-auto space-y-4 bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 sm:p-8">
+      <h1 class="text-2xl font-black">Privacy Policy</h1>
+      <p class="text-xs text-[var(--muted-foreground)]">CIVICFORCE Data Protection Charter</p>
+      <div class="text-sm space-y-3 leading-relaxed text-[var(--muted-foreground)]">
+        <p><strong class="text-[var(--foreground)]">1. Information collected:</strong> Problem description, coordinates, landmark, up to 3 photos, optional name/phone/email.</p>
+        <p><strong class="text-[var(--foreground)]">2. Contact privacy:</strong> Citizen contact details are NEVER shown on public challenge pages or maps. Only authorized signed-in administrative reviewers can view them.</p>
+        <p><strong class="text-[var(--foreground)]">3. AI processing:</strong> Automated AI triage runs without transmitting personal identities.</p>
+      </div>
+      <button onclick="showPage('home')" class="mt-4 bg-[#0B5345] text-white px-4 py-2 rounded-xl text-xs font-bold">← Return Home</button>
+    </div>
+
+    <!-- ================= PAGE 10: TERMS ================= -->
+    <div id="page-terms" class="hidden max-w-3xl mx-auto space-y-4 bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 sm:p-8">
+      <h1 class="text-2xl font-black">Terms of Service</h1>
+      <p class="text-xs text-[var(--muted-foreground)]">Usage Guidelines</p>
+      <div class="text-sm space-y-3 leading-relaxed text-[var(--muted-foreground)]">
+        <p><strong class="text-[var(--foreground)]">1. Truthful submissions:</strong> Users must submit authentic, first-hand civic issues.</p>
+        <p><strong class="text-[var(--foreground)]">2. No abuse:</strong> Defamation or leaking personal details of other citizens is strictly forbidden.</p>
+        <p><strong class="text-[var(--foreground)]">3. Moderation:</strong> Reviewers reserve the right to refine labels or reject non-conforming entries.</p>
+      </div>
+      <button onclick="showPage('home')" class="mt-4 bg-[#0B5345] text-white px-4 py-2 rounded-xl text-xs font-bold">← Return Home</button>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-[#073B31] text-[#E8F8F5] border-t border-[var(--border)] mt-auto py-8 px-4 sm:px-8">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="font-extrabold text-sm text-amber-400">CIVICFORCE</span>
+        <span>· Tamil Nadu Societal Action Network (SIH-26043)</span>
+      </div>
+      <div class="flex gap-4 text-emerald-200">
+        <button onclick="showPage('privacy')" class="hover:underline">Privacy Policy</button>
+        <button onclick="showPage('terms')" class="hover:underline">Terms of Service</button>
+        <button onclick="showPage('challenges')" class="hover:underline">Public Register</button>
+      </div>
+      <div class="text-emerald-300">
+        © 2026 CIVICFORCE Platform
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mock Database & Application Logic -->
+  <script>
+    let DB_REPORTS = [
+      {
+        id: "TNCR-2048",
+        title: "Streetlights out on Anna Salai near Teynampet junction",
+        description: "Two high-mast streetlights near Teynampet metro intersection on Anna Salai have been completely dead for 4 evenings. Crossing is pitch black after sunset.",
+        district: "Chennai",
+        category: "Street lighting",
+        urgency: "Normal",
+        status: "Under review",
+        landmark: "Teynampet Metro Gate 3",
+        lat: 13.0418,
+        lng: 80.2481,
+        partner: "TANGEDCO Electricity Board",
+        ai_summary: "High-mast lights failed at Teynampet intersection creating pedestrian safety hazard.",
+        contact_name: "S. Ramachandran",
+        contact_phone: "+91 98401 23456",
+        contact_email: "ramachandran.s@example.com",
+        created_at: "2026-10-12T10:20:00Z",
+        timeline: [
+          { status: "Received", date: "Oct 12, 2026, 10:20 AM", note: "Report logged via citizen portal. AI triage completed." },
+          { status: "Under review", date: "Oct 13, 2026, 08:45 AM", note: "Admin assigned TANGEDCO Central Division for cable fault inspection." }
+        ]
+      },
+      {
+        id: "TNCR-2047",
+        title: "Water stagnation and clogged storm drain near Ukkadam market",
+        description: "Rainwater and sewage pooling across 40-meter stretch beside Ukkadam market entrance. Heavy silt and plastic choke the main drain.",
+        district: "Coimbatore",
+        category: "Water & drainage",
+        urgency: "High",
+        status: "In progress",
+        landmark: "Ukkadam Market Western Gate",
+        lat: 10.9931,
+        lng: 76.9612,
+        partner: "TWAD Board",
+        ai_summary: "Severe sewage stagnation blocking market access. Emergency desilting required.",
+        contact_name: "M. Kavitha",
+        contact_phone: "+91 97890 54321",
+        contact_email: "kavitha.cbe@example.com",
+        created_at: "2026-10-10T07:30:00Z",
+        timeline: [
+          { status: "Received", date: "Oct 10, 2026, 07:30 AM", note: "High urgency flagged due to public market footfall." },
+          { status: "Under review", date: "Oct 11, 2026, 09:00 AM", note: "Sanitation team verified drain blockage." },
+          { status: "In progress", date: "Oct 12, 2026, 12:15 PM", note: "Excavator and suction tanker deployed on site." }
+        ]
+      },
+      {
+        id: "TNCR-2046",
+        title: "Overflowing community waste bins near Periyar bus stand",
+        description: "Community bins beside Periyar bus stand are overflowing. Stray cattle and dogs are scattering waste across the roadway.",
+        district: "Madurai",
+        category: "Waste & sanitation",
+        urgency: "Normal",
+        status: "New",
+        landmark: "Periyar Bus Stand West Exit",
+        lat: 9.9195,
+        lng: 78.1193,
+        partner: null,
+        ai_summary: "Community waste bins overflowing near transit depot. Compactor dispatch recommended.",
+        contact_name: "P. Muthuvel",
+        contact_phone: "+91 94432 11223",
+        contact_email: "muthuvel.mdu@example.com",
+        created_at: "2026-10-16T14:00:00Z",
+        timeline: [
+          { status: "Received", date: "Oct 16, 2026, 02:00 PM", note: "Problem submitted. AI triage categorized as Waste & sanitation." }
+        ]
+      },
+      {
+        id: "TNCR-2045",
+        title: "Dangerous trench and collapsed footpath by Hasthampatti Girls School",
+        description: "15-foot paving collapse right in front of the school gate left jagged concrete exposed. Multiple students tripped during morning rush.",
+        district: "Salem",
+        category: "Roads & footpaths",
+        urgency: "High",
+        status: "Resolved",
+        landmark: "Hasthampatti Roundabout School Gate",
+        lat: 11.6742,
+        lng: 78.1468,
+        partner: "Highways Department TN",
+        ai_summary: "Dangerous walkway collapse outside school gate presenting active hazard to children.",
+        contact_name: "V. Sundaram",
+        contact_phone: "+91 99940 77889",
+        contact_email: "sundaram.salem@example.com",
+        created_at: "2026-10-04T06:15:00Z",
+        timeline: [
+          { status: "Received", date: "Oct 04, 2026, 06:15 AM", note: "Logged with High Urgency flag." },
+          { status: "In progress", date: "Oct 06, 2026, 11:00 AM", note: "Salem Municipal Road Wing replaced paver tiles." },
+          { status: "Resolved", date: "Oct 09, 2026, 05:00 PM", note: "Walkway reconstruction inspected and verified safe for public access." }
+        ]
+      },
+      {
+        id: "TNCR-2044",
+        title: "Fluoride water filtration pilot innovation needed for tribal school",
+        description: "Borewells in Thally middle school contain fluoride concentrations of 2.8 mg/L affecting dental health of tribal children. We request research partnership with universities.",
+        district: "Krishnagiri",
+        category: "Water & drainage",
+        urgency: "High",
+        status: "Assigned",
+        landmark: "Thally Panchayat School",
+        lat: 12.5855,
+        lng: 77.6534,
+        partner: "NIT Trichy Lab",
+        ai_summary: "High fluoride water contamination. Academic research partner matched for low-cost filtration.",
+        contact_name: "Dr. Anand Kumar",
+        contact_phone: "+91 94422 66778",
+        contact_email: "anand.thally@example.com",
+        created_at: "2026-10-11T11:00:00Z",
+        timeline: [
+          { status: "Received", date: "Oct 11, 2026, 11:00 AM", note: "Societal innovation challenge registered." },
+          { status: "Assigned", date: "Oct 15, 2026, 03:20 PM", note: "Assigned to NIT Trichy Environmental Lab for pilot deployment." }
+        ]
+      },
+      {
+        id: "TNCR-2043",
+        title: "Broken safety railings along Cauvery river bridge promenade",
+        description: "Wrought iron pedestrian safety railings on Cauvery river bridge near Srirangam rusted through and collapsed over 12 meters with 20-foot drop risk.",
+        district: "Tiruchirappalli",
+        category: "Public spaces",
+        urgency: "High",
+        status: "Under review",
+        landmark: "Srirangam Approach Bridge",
+        lat: 10.8560,
+        lng: 78.6948,
+        partner: "L&T Urban Infrastructure",
+        ai_summary: "Promenade guard railings broken along river bridge with direct fall hazard.",
+        contact_name: "R. Srinivasan",
+        contact_phone: "+91 98421 99001",
+        contact_email: "srinivasan.trichy@example.com",
+        created_at: "2026-10-15T09:40:00Z",
+        timeline: [
+          { status: "Received", date: "Oct 15, 2026, 09:40 AM", note: "High urgency societal challenge registered." },
+          { status: "Under review", date: "Oct 16, 2026, 04:10 PM", note: "Temporary warning cones placed. Partner contacted for railing fabrication." }
+        ]
+      },
+      {
+        id: "TNCR-2042",
+        title: "Massive pothole cluster on Tirunelveli bypass junction",
+        description: "Four deep potholes stretching across 25 meters on main bypass causing heavy vehicle tipping and daily accidents.",
+        district: "Tirunelveli",
+        category: "Roads & footpaths",
+        urgency: "High",
+        status: "New",
+        landmark: "Vannarpettai Flyover Junction",
+        lat: 8.7300,
+        lng: 77.7000,
+        partner: null,
+        ai_summary: "Dangerous pothole cluster on heavy bypass route presenting active accident risk.",
+        contact_name: "Murugan K.",
+        contact_phone: "+91 94444 55667",
+        contact_email: "murugan@example.com",
+        created_at: "2026-10-18T10:00:00Z",
+        timeline: [
+          { status: "Received", date: "Oct 18, 2026, 10:00 AM", note: "Problem logged by citizen. AI flagged High Urgency." }
+        ]
+      }
+    ];
+
+    let currentEditingId = null;
+    let isStrictlyLoggedIn = false; // STRICT AUTH FLAG
+    let attachedPhotosCount = 0;
+    let reportMap = null;
+    let reportMarker = null;
+    let districtLiveMap = null;
+    let currentPinnedLat = 13.0827;
+    let currentPinnedLng = 80.2707;
+
+    function showPage(pageId) {
+      // STRICT AUTH PROTECTION: If user tries to open admin or admin-review without logging in, block them!
+      if ((pageId === 'admin' || pageId === 'admin-review') && !isStrictlyLoggedIn) {
+        alert('🔒 Access Restricted: You must enter administrator credentials to access the Admin Queue.');
+        showPage('login');
+        return;
+      }
+
+      const pages = ['home', 'report', 'challenges', 'detail', 'map', 'login', 'admin', 'admin-review', 'privacy', 'terms'];
+      pages.forEach(p => {
+        const el = document.getElementById(`page-${p}`);
+        if (el) el.classList.add('hidden');
+      });
+
+      const target = document.getElementById(`page-${pageId}`);
+      if (target) target.classList.remove('hidden');
+
+      // Update Nav active states
+      ['home', 'challenges', 'map', 'admin'].forEach(tab => {
+        const btn = document.getElementById(`nav-${tab}`);
+        if (btn) {
+          if (tab === pageId) {
+            btn.className = 'px-3.5 py-2 rounded-lg bg-[#0B5345] text-white font-bold';
+          } else {
+            btn.className = 'px-3.5 py-2 rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)] font-bold';
+          }
+        }
+      });
+
+      if (pageId === 'home') renderHomeReports();
+      if (pageId === 'challenges') renderAllReports();
+      if (pageId === 'admin') renderAdminQueue();
+      if (pageId === 'report') initReportLeafletMap();
+      if (pageId === 'map') initDistrictLeafletMap();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ================= MAP LOGIC: AUTO-POINTING MAP IN REPORT =================
+    function initReportLeafletMap() {
+      setTimeout(() => {
+        const el = document.getElementById('proto-report-map');
+        if (!el || typeof L === 'undefined') return;
+
+        if (reportMap) {
+          try { reportMap.remove(); } catch(e) {}
+        }
+
+        reportMap = L.map('proto-report-map').setView([currentPinnedLat, currentPinnedLng], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(reportMap);
+
+        reportMarker = L.marker([currentPinnedLat, currentPinnedLng], { draggable: true }).addTo(reportMap);
+
+        reportMarker.on('dragend', function (e) {
+          const pos = reportMarker.getLatLng();
+          currentPinnedLat = Number(pos.lat.toFixed(5));
+          currentPinnedLng = Number(pos.lng.toFixed(5));
+          document.getElementById('location-confirm-text').innerText = `Manual Pin (${currentPinnedLat}° N, ${currentPinnedLng}° E)`;
+        });
+      }, 100);
+    }
+
+    function handleLocationInput(text) {
+      if (!text || text.trim().length < 3) return;
+      const lower = text.toLowerCase();
+
+      // Check known Tamil Nadu localities
+      const matched = TN_LOCALITIES.find(l => 
+        l.name.toLowerCase().includes(lower) || lower.includes(l.name.toLowerCase().split(',')[0])
+      );
+
+      if (matched) {
+        quickLocate(matched.name, matched.lat, matched.lng, matched.district);
+        return;
+      }
+
+      // Check District name matches
+      const distMatch = TN_DISTRICTS.find(d => lower.includes(d.name.toLowerCase()));
+      if (distMatch) {
+        quickLocate(`${distMatch.name} Center`, distMatch.lat, distMatch.lng, distMatch.name);
+      }
+    }
+
+    function onDistrictSelected(districtName) {
+      const dist = TN_DISTRICTS.find(d => d.name === districtName);
+      if (dist) {
+        quickLocate(`${dist.name} District Center`, dist.lat, dist.lng, dist.name);
+      }
+    }
+
+    function quickLocate(name, lat, lng, district) {
+      currentPinnedLat = lat;
+      currentPinnedLng = lng;
+
+      if (district) {
+        const distSelect = document.getElementById('form-district');
+        if (distSelect && !distSelect.value) distSelect.value = district;
+      }
+
+      const input = document.getElementById('form-location');
+      if (input && !input.value) input.value = name;
+
+      const badge = document.getElementById('location-confirm-text');
+      if (badge) badge.innerText = `${name} (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`;
+
+      // Auto-fly map to location!
+      if (reportMap && reportMarker) {
+        reportMap.flyTo([lat, lng], 14, { duration: 1.2 });
+        reportMarker.setLatLng([lat, lng]);
+      }
+    }
+
+    // ================= MAP LOGIC: LIVE DISTRICT MAP =================
+    function initDistrictLeafletMap() {
+      setTimeout(() => {
+        const el = document.getElementById('proto-live-map');
+        if (!el || typeof L === 'undefined') return;
+
+        if (districtLiveMap) {
+          try { districtLiveMap.remove(); } catch(e) {}
+        }
+
+        districtLiveMap = L.map('proto-live-map').setView([11.1271, 78.6569], 7);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(districtLiveMap);
+
+        // Add real markers for all reports
+        DB_REPORTS.forEach(r => {
+          if (r.lat && r.lng) {
+            const isUrgent = r.urgency === 'High';
+            const icon = L.divIcon({
+              className: isUrgent ? 'custom-pulse-pin' : 'custom-norm-pin',
+              iconSize: isUrgent ? [16, 16] : [14, 14],
+              iconAnchor: [8, 8]
+            });
+
+            const m = L.marker([r.lat, r.lng], { icon }).addTo(districtLiveMap);
+            m.bindPopup(`
+              <div style="min-width: 190px; font-family: inherit;">
+                <div style="font-size: 11px; font-weight: 800; color: #0B5345;">${r.id} · ${r.district}</div>
+                <h4 style="margin: 3px 0 6px 0; font-size: 13px; font-weight: 800;">${r.title}</h4>
+                <div style="margin-bottom: 8px;">
+                  <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #eee; font-weight: bold;">${r.category}</span>
+                  <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: ${isUrgent ? '#FDEDEC' : '#EAFAF1'}; color: ${isUrgent ? '#C0392B' : '#27AE60'}; font-weight: bold;">${r.status}</span>
+                </div>
+                <button style="width: 100%; background: #0B5345; color: #fff; border: none; padding: 6px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold;" onclick="openReportDetail('${r.id}')">
+                  View Full Challenge →
+                </button>
+              </div>
+            `);
+          }
+        });
+      }, 100);
+    }
+
+    function flyToDistrict(name, lat, lng) {
+      if (districtLiveMap) {
+        districtLiveMap.flyTo([lat, lng], 12, { duration: 1.2 });
+      }
+    }
+
+    // ================= STRICT AUTHENTICATION LOGIC =================
+    function handleAdminNavClick() {
+      if (!isStrictlyLoggedIn) {
+        showPage('login');
+      } else {
+        showPage('admin');
+      }
+    }
+
+    function handleAuthButtonClick() {
+      if (isStrictlyLoggedIn) {
+        handleLogout();
+      } else {
+        showPage('login');
+      }
+    }
+
+    function handleStrictLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-input-email').value.trim();
+      const pwd = document.getElementById('login-input-pwd').value.trim();
+      const errBox = document.getElementById('login-error-msg');
+
+      errBox.classList.add('hidden');
+
+      // STRICT VALIDATION
+      if (email === 'admin@tn.gov.in' && pwd === 'Admin@1234') {
+        isStrictlyLoggedIn = true;
+        document.getElementById('auth-header-btn').innerText = '🚪 Sign Out';
+        document.getElementById('session-status-badge').innerText = '🛡️ Administrator Mode';
+        document.getElementById('session-status-badge').className = 'px-2 py-0.5 rounded bg-emerald-500 text-white font-bold';
+        alert('✓ Login Successful: Welcome back, Administrator!');
+        showPage('admin');
+      } else {
+        errBox.innerText = '❌ Access Denied: Incorrect official email or password.';
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    function handleLogout() {
+      isStrictlyLoggedIn = false;
+      document.getElementById('auth-header-btn').innerText = '🔐 Admin Sign-in';
+      document.getElementById('session-status-badge').innerText = 'Public Citizen Mode';
+      document.getElementById('session-status-badge').className = 'px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-300';
+      alert('You have signed out. Admin queue is now locked.');
+      showPage('home');
+    }
+
+    // ================= REPORTS RENDERING =================
+    function renderHomeReports() {
+      const container = document.getElementById('home-reports-grid');
+      if (!container) return;
+      const recent = DB_REPORTS.slice(0, 6);
+      container.innerHTML = recent.map(renderCardHtml).join('');
+    }
+
+    function renderAllReports(filteredList = null) {
+      const container = document.getElementById('all-reports-grid');
+      if (!container) return;
+      const list = filteredList || DB_REPORTS;
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-12 bg-[var(--card)] border border-dashed border-[var(--border)] rounded-2xl">
+            <span class="text-3xl">📂</span>
+            <h3 class="font-bold text-base mt-2">No reports match your filters</h3>
+            <button onclick="resetFiltersUI()" class="mt-3 px-4 py-1.5 bg-[#0B5345] text-white text-xs font-semibold rounded-lg">
+              Reset Filters
+            </button>
+          </div>
+        `;
+        return;
+      }
+      container.innerHTML = list.map(renderCardHtml).join('');
+    }
+
+    function renderCardHtml(r) {
+      const urgencyBadge = r.urgency === 'High' 
+        ? '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300">⚡ High Urgency</span>'
+        : '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--secondary)] text-[var(--muted-foreground)]">Normal</span>';
+
+      const statusColors = {
+        'New': 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+        'Under review': 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+        'Assigned': 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300',
+        'In progress': 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300',
+        'Resolved': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+      };
+      const statusBadge = `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${statusColors[r.status] || 'bg-gray-100'}">${r.status}</span>`;
+
+      return `
+        <div onclick="openReportDetail('${r.id}')" class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center gap-2 mb-2">
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-[var(--secondary)] text-[var(--foreground)]">${r.category}</span>
+              ${urgencyBadge}
+            </div>
+            <h3 class="font-bold text-sm text-[var(--foreground)] mb-1 line-clamp-2">${r.title}</h3>
+            <p class="text-xs text-[var(--muted-foreground)] line-clamp-3 mb-4 leading-relaxed">${r.description}</p>
+          </div>
+          <div class="pt-3 border-t border-[var(--border)] flex justify-between items-center text-xs text-[var(--muted-foreground)]">
+            <span class="font-bold">📍 ${r.district}</span>
+            ${statusBadge}
+          </div>
+        </div>
+      `;
+    }
+
+    function openReportDetail(id) {
+      const r = DB_REPORTS.find(x => x.id === id);
+      if (!r) return;
+
+      const container = document.getElementById('detail-content');
+      container.innerHTML = `
+        <div class="flex justify-between items-start flex-wrap gap-3 pb-4 border-b border-[var(--border)]">
+          <div>
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="font-mono font-bold text-xs bg-[var(--secondary)] px-2 py-0.5 rounded text-[#0B5345] dark:text-emerald-400">${r.id}</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded bg-[var(--secondary)]">${r.category}</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded ${r.urgency === 'High' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}">${r.urgency} Urgency</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">${r.status}</span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-black text-[var(--foreground)]">${r.title}</h1>
+          </div>
+          <button onclick="alert('Tracking Link: ' + window.location.origin + '/challenges/' + '${r.id}')" class="text-xs px-3 py-1.5 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)] font-bold">
+            🔗 Copy Tracking Link
+          </button>
+        </div>
+
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-1">Problem Description</h2>
+          <p class="text-sm leading-relaxed">${r.description}</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-[var(--secondary)]/40 p-3.5 rounded-xl border border-[var(--border)]">
+          <div>📍 <strong>District:</strong> ${r.district}</div>
+          <div>🏛️ <strong>Location:</strong> ${r.landmark || 'None specified'}</div>
+          <div>📌 <strong>Pinned Coordinates:</strong> ${r.lat.toFixed(4)}° N, ${r.lng.toFixed(4)}° E</div>
+          <div>📅 <strong>Submitted:</strong> ${r.created_at.slice(0, 10)}</div>
+        </div>
+
+        <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 text-xs space-y-1.5">
+          <div class="flex items-center gap-2 font-bold text-emerald-800 dark:text-emerald-300">
+            <span>🤖 AI Triage Assessment</span>
+            <span class="px-1.5 py-0.5 bg-emerald-600 text-white rounded text-[10px] uppercase">AI Suggested</span>
+          </div>
+          <p class="text-xs leading-relaxed text-[var(--foreground)] font-medium">${r.ai_summary}</p>
+        </div>
+
+        ${r.partner ? `
+          <div class="border-l-4 border-[#0B5345] bg-[var(--secondary)]/30 p-3.5 rounded-r-xl text-xs space-y-1">
+            <div class="font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-[10px]">Assigned Resolution Partner</div>
+            <div class="font-bold text-sm">${r.partner}</div>
+          </div>
+        ` : ''}
+
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-3">Status Timeline</h3>
+          <div class="space-y-3 relative pl-4 border-l-2 border-emerald-500/30">
+            ${r.timeline.map((item, idx) => `
+              <div class="relative">
+                <div class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                <div class="text-xs font-bold">${item.status} <span class="text-[11px] font-normal text-[var(--muted-foreground)]">· ${item.date}</span></div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">${item.note}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      showPage('detail');
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const title = document.getElementById('form-title').value;
+      const desc = document.getElementById('form-desc').value;
+      const district = document.getElementById('form-district').value;
+      const landmark = document.getElementById('form-location').value;
+      const name = document.getElementById('form-name').value;
+      const phone = document.getElementById('form-phone').value;
+      const email = document.getElementById('form-email').value;
+
+      let cat = 'Other';
+      if (/road|pothole|footpath|bridge|asphalt|traffic/.test(title + desc)) cat = 'Roads & footpaths';
+      else if (/water|leak|drain|flood|pipe|sewage/.test(title + desc)) cat = 'Water & drainage';
+      else if (/light|lamp|dark|bulb|electric|power/.test(title + desc)) cat = 'Street lighting';
+      else if (/waste|garbage|dump|trash|bin/.test(title + desc)) cat = 'Waste & sanitation';
+      else if (/park|market|public|bus stand/.test(title + desc)) cat = 'Public spaces';
+
+      const isHighUrgency = /danger|hazard|accident|risk|hospital|school|collapse|fire|electroc|emergency/.test(title + desc);
+
+      const newId = `TNCR-${Math.floor(1000 + Math.random() * 9000)}`;
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+      const newReport = {
+        id: newId,
+        title,
+        description: desc,
+        district,
+        category: cat,
+        urgency: isHighUrgency ? 'High' : 'Normal',
+        status: 'New',
+        landmark,
+        lat: currentPinnedLat,
+        lng: currentPinnedLng,
+        partner: null,
+        ai_summary: `AI classified problem into ${cat} with ${isHighUrgency ? 'High' : 'Normal'} urgency based on reported location and risk factors.`,
+        contact_name: name || null,
+        contact_phone: phone || null,
+        contact_email: email || null,
+        created_at: now.toISOString(),
+        timeline: [
+          { status: 'Received', date: dateStr, note: `Report received from citizen. Automated AI triage categorized as ${cat} (${isHighUrgency ? 'High' : 'Normal'} priority).` }
+        ]
+      };
+
+      DB_REPORTS.unshift(newReport);
+      document.getElementById('stat-total').innerText = DB_REPORTS.length;
+
+      alert(`Report ${newId} submitted! Automated AI triage categorized this problem as '${cat}' (${isHighUrgency ? 'High Urgency' : 'Normal'}). Opening tracking view...`);
+      openReportDetail(newId);
+    }
+
+    function filterReports() {
+      const q = document.getElementById('filter-search')?.value.toLowerCase() || '';
+      const dist = document.getElementById('filter-district-select')?.value || 'All';
+      const cat = document.getElementById('filter-category-select')?.value || 'All';
+      const stat = document.getElementById('filter-status-select')?.value || 'All';
+
+      const filtered = DB_REPORTS.filter(r => {
+        const matchesQ = !q || r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q) || (r.landmark && r.landmark.toLowerCase().includes(q));
+        const matchesDist = dist === 'All' || r.district === dist;
+        const matchesCat = cat === 'All' || r.category === cat;
+        const matchesStat = stat === 'All' || r.status === stat;
+        return matchesQ && matchesDist && matchesCat && matchesStat;
+      });
+
+      renderAllReports(filtered);
+    }
+
+    function resetFiltersUI() {
+      if (document.getElementById('filter-search')) document.getElementById('filter-search').value = '';
+      if (document.getElementById('filter-district-select')) document.getElementById('filter-district-select').value = 'All';
+      if (document.getElementById('filter-category-select')) document.getElementById('filter-category-select').value = 'All';
+      if (document.getElementById('filter-status-select')) document.getElementById('filter-status-select').value = 'All';
+      renderAllReports();
+    }
+
+    function setQueueTab(tab) {
+      document.querySelectorAll('.queue-tab').forEach(b => {
+        if (b.dataset.tab === tab) {
+          b.className = 'queue-tab px-3.5 py-1.5 rounded-lg bg-[#0B5345] text-white';
+        } else {
+          b.className = 'queue-tab px-3.5 py-1.5 rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)]';
+        }
+      });
+      renderAdminQueue(tab);
+    }
+
+    function renderAdminQueue(tab = 'All') {
+      const tbody = document.getElementById('admin-queue-tbody');
+      if (!tbody) return;
+
+      const list = tab === 'All' ? DB_REPORTS : DB_REPORTS.filter(r => r.status === tab);
+      list.sort((a, b) => (a.urgency === 'High' ? -1 : 1));
+
+      tbody.innerHTML = list.map(r => `
+        <tr class="hover:bg-[var(--secondary)]/40 ${r.urgency === 'High' ? 'bg-red-500/5' : ''}">
+          <td class="p-3.5 font-mono font-bold text-emerald-700 dark:text-emerald-400">${r.id}</td>
+          <td class="p-3.5 font-bold max-w-[200px] truncate">${r.title}</td>
+          <td class="p-3.5 font-medium">📍 ${r.district}</td>
+          <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-[var(--secondary)] font-bold">${r.category}</span></td>
+          <td class="p-3.5">
+            ${r.urgency === 'High' ? '<span class="text-red-600 font-extrabold">⚡ High</span>' : '<span class="text-gray-500">Normal</span>'}
+          </td>
+          <td class="p-3.5"><span class="font-extrabold">${r.status}</span></td>
+          <td class="p-3.5 text-[11px] text-[var(--muted-foreground)]">
+            ${r.contact_name ? `<strong>${r.contact_name}</strong><br>${r.contact_phone || ''}` : '<em>Anonymous</em>'}
+          </td>
+          <td class="p-3.5 text-right">
+            <button onclick="openAdminReview('${r.id}')" class="px-3 py-1 bg-[#0B5345] hover:bg-[#073B31] text-white rounded-lg font-bold text-[11px]">
+              Review →
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openAdminReview(id) {
+      currentEditingId = id;
+      const r = DB_REPORTS.find(x => x.id === id);
+      if (!r) return;
+
+      document.getElementById('review-header-id').innerText = r.id;
+      document.getElementById('review-category').value = r.category;
+      document.getElementById('review-urgency').value = r.urgency;
+      document.getElementById('review-summary').value = r.ai_summary || '';
+      document.getElementById('review-status').value = r.status;
+      document.getElementById('review-partner').value = r.partner || '';
+      document.getElementById('review-public-update').value = '';
+
+      document.getElementById('review-contact-box').innerHTML = `
+        <div><strong>Citizen:</strong> ${r.contact_name || 'Not given'}</div>
+        <div><strong>Phone:</strong> ${r.contact_phone || 'Not given'}</div>
+        <div><strong>Email:</strong> ${r.contact_email || 'Not given'}</div>
+      `;
+
+      showPage('admin-review');
+    }
+
+    function saveAdminReview() {
+      if (!currentEditingId) return;
+      const r = DB_REPORTS.find(x => x.id === currentEditingId);
+      if (!r) return;
+
+      r.category = document.getElementById('review-category').value;
+      r.urgency = document.getElementById('review-urgency').value;
+      r.ai_summary = document.getElementById('review-summary').value;
+      r.status = document.getElementById('review-status').value;
+      r.partner = document.getElementById('review-partner').value || null;
+
+      const publicUpdate = document.getElementById('review-public-update').value;
+      if (publicUpdate && publicUpdate.trim()) {
+        const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        r.timeline.push({
+          status: r.status,
+          date: dateStr,
+          note: publicUpdate.trim()
+        });
+      }
+
+      alert(`Changes saved for ${r.id}! Public timeline updated.`);
+      showPage('admin');
+    }
+
+    function addSamplePhoto() {
+      if (attachedPhotosCount >= 3) {
+        alert('Maximum of 3 photos reached.');
+        return;
+      }
+      attachedPhotosCount++;
+      document.getElementById('photo-count-label').innerText = `${attachedPhotosCount} of 3 photos added`;
+      const box = document.getElementById('photos-preview-box');
+      box.innerHTML += `
+        <div class="w-14 h-14 rounded-lg bg-emerald-500/20 border border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-800 dark:text-emerald-300">
+          Photo ${attachedPhotosCount}
+        </div>
+      `;
+    }
+
+    renderHomeReports();
+  </script>
+</body>
+</html>
