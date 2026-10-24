@@ -1,28 +1,27 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Groq = require('groq-sdk');
 require('dotenv').config();
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-let genAI = null;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+let groq = null;
 
-if (GEMINI_API_KEY) {
+if (GROQ_API_KEY) {
   try {
-    genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    console.log('🤖 Google Gemini AI Engine initialized for CIVICFORCE.');
+    groq = new Groq({ apiKey: GROQ_API_KEY });
+    console.log('⚡ Groq AI Engine initialized successfully for CIVICFORCE (Llama-3.3-70b).');
   } catch (err) {
-    console.warn('⚠️ Gemini AI initialization notice:', err.message);
+    console.warn('⚠️ Groq AI initialization notice:', err.message);
   }
 } else {
-  console.log('ℹ️ GEMINI_API_KEY not found in backend/.env. Using built-in Tamil Nadu civic neural heuristics for AI triage.');
+  console.log('ℹ️ GROQ_API_KEY not found in backend/.env. Using built-in Tamil Nadu civic neural heuristics for AI triage.');
 }
 
-// Built-in intelligent Tamil Nadu civic classifier & heuristics
+// Built-in intelligent Tamil Nadu civic classifier & heuristics (fallback)
 function fallbackCivicAnalysis(title = '', description = '', district = 'Chennai', landmark = '') {
   const text = `${title} ${description} ${landmark}`.toLowerCase();
 
-  // Category detection patterns (supports Tamil & English keywords)
   let category = 'Municipal Infrastructure';
   let partner = 'Greater Chennai Corporation Municipal Cell';
-  let urgency = 'Medium';
+  let urgency = 'Normal';
   let urgencyReason = 'Standard civic concern requiring municipal inspection and remediation.';
   let recommendedAction = 'Dispatch field surveyor for on-site assessment within 48 hours.';
 
@@ -35,7 +34,7 @@ function fallbackCivicAnalysis(title = '', description = '', district = 'Chennai
       urgencyReason = 'Active water loss or high contamination risk impacting residential supply.';
       recommendedAction = 'Deploy emergency isolation valve technicians and suction tankers.';
     } else {
-      urgency = 'Medium';
+      urgency = 'Normal';
       urgencyReason = 'Drainage blockage causing public nuisance.';
       recommendedAction = 'Schedule desilting of local stormwater conduit.';
     }
@@ -43,13 +42,13 @@ function fallbackCivicAnalysis(title = '', description = '', district = 'Chennai
   // Street lighting
   else if (/light|lamp|dark|night|post|high mast|streetlight|மின்விளக்கு|வெளிச்சம்|இருட்டு/.test(text)) {
     category = 'Street lighting';
-    partner = 'TANGEDCO Street Lighting Cell & Local Panchayat/Corporation';
+    partner = 'TANGEDCO Street Lighting Cell & Local Corporation';
     if (/school|women|bus terminal|accident|robbery|terminal/.test(text)) {
-      urgency = 'Medium';
+      urgency = 'Normal';
       urgencyReason = 'Dark corridor adjacent to transit or pedestrian thoroughfare.';
       recommendedAction = 'Replace blown LED drivers and verify breaker timer functionality.';
     } else {
-      urgency = 'Low';
+      urgency = 'Normal';
       recommendedAction = 'Replace luminaire bulbs during scheduled zone maintenance.';
     }
   }
@@ -57,7 +56,7 @@ function fallbackCivicAnalysis(title = '', description = '', district = 'Chennai
   else if (/electric|wire|spark|transformer|current|shock|hanging wire|மின்சாரம்|கம்பி|டிரான்ஸ்பார்மர்/.test(text)) {
     category = 'Electrical & power';
     partner = 'TANGEDCO Distribution Division & PSG Tech Electrical Cell';
-    urgency = 'Critical';
+    urgency = 'High';
     urgencyReason = 'High electrocution danger or exposed high-voltage wiring in public area.';
     recommendedAction = 'Immediately de-energize feeder line and send emergency lineman team.';
   }
@@ -66,11 +65,11 @@ function fallbackCivicAnalysis(title = '', description = '', district = 'Chennai
     category = 'Waste management';
     partner = 'TNPCB (Tamil Nadu Pollution Control Board) & NIT Trichy Environmental Dept';
     if (/chemical|toxic|effluent|tanker|fish kill|poison/.test(text)) {
-      urgency = 'Critical';
+      urgency = 'High';
       urgencyReason = 'Suspected toxic effluent discharge threatening local water ecosystem.';
       recommendedAction = 'Sample effluent, seize illicit discharge source, notify TNPCB vigilance.';
     } else {
-      urgency = 'Medium';
+      urgency = 'Normal';
       urgencyReason = 'Solid waste buildup blocking pedestrian access.';
       recommendedAction = 'Deploy mechanized compactor truck and sanitization spray.';
     }
@@ -81,10 +80,10 @@ function fallbackCivicAnalysis(title = '', description = '', district = 'Chennai
     partner = 'State Highways Dept & Thiagarajar College of Engg Infrastructure Cell';
     if (/cave-in|crater|deep|temple|chariot|bus route|fatal/.test(text)) {
       urgency = 'High';
-      urgencyReason = 'Structural roadway failure causing acute vehicular and pedestrian collision hazards.';
+      urgencyReason = 'Structural roadway failure causing acute collision hazards.';
       recommendedAction = 'Erect safety barricades and lay rapid-hardening bitumen mix.';
     } else {
-      urgency = 'Medium';
+      urgency = 'Normal';
       recommendedAction = 'Patch crater and smooth road surface during nocturnal maintenance window.';
     }
   }
@@ -97,9 +96,8 @@ function fallbackCivicAnalysis(title = '', description = '', district = 'Chennai
     recommendedAction = 'Conduct thermal fogging and anti-larval chemical treatment.';
   }
 
-  // Detect explicit critical words
   if (/critical|emergency|danger|death|fatal|hazard|toxic|severe|விபத்து|அபாயம்/.test(text)) {
-    urgency = 'Critical';
+    urgency = 'High';
   }
 
   const aiSummary = `${category} issue flagged in ${district} (${landmark || 'General area'}). ${urgencyReason}`;
@@ -118,44 +116,49 @@ function fallbackCivicAnalysis(title = '', description = '', district = 'Chennai
 
 /**
  * Main AI Analysis Function
- * Calls Gemini if API key available, falls back gracefully to Tamil Nadu heuristic engine.
+ * Uses Groq Llama-3.3-70b-versatile, falls back gracefully to local heuristic engine.
  */
 async function analyzeCivicIssue(title, description, district, landmark) {
-  if (genAI && GEMINI_API_KEY) {
+  if (groq && GROQ_API_KEY) {
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      const prompt = `
-You are the AI Civic Engineer and Triage Specialist for Tamil Nadu Government's CIVICFORCE platform.
-Analyze this citizen-reported problem:
-Title: "${title}"
-Description: "${description}"
-District: "${district}"
-Landmark: "${landmark || 'Not specified'}"
-
-The report might be written in English, Tamil, or Tanglish.
-Return a STRICT JSON object only (no markdown fences, no extra text):
+      const completion = await groq.chat.completions.create({
+        model: 'openai/gpt-oss-120b',
+        messages: [
+          {
+            role: 'system',
+            content: `You are the AI Civic Engineer and Triage Specialist for the Government of Tamil Nadu's CIVICFORCE platform.
+Analyze citizen-reported municipal or societal problems. The input may be in English, Tamil (தமிழ்), or Tanglish.
+Return a STRICT JSON object only with these exact keys:
 {
   "detected_category": "One of ['Water & drainage', 'Street lighting', 'Roads & infrastructure', 'Waste management', 'Public health & sanitation', 'Electrical & power', 'Municipal Infrastructure']",
-  "urgency": "One of ['Critical', 'High', 'Medium', 'Low']",
+  "urgency": "One of ['High', 'Normal']",
   "urgency_reason": "Clear explanation of hazard level and public danger",
-  "ai_summary": "Crisp 1-2 sentence engineering description",
-  "recommended_partner": "Suggested Tamil Nadu agency or partner (e.g. CMWSSB, TWAD, TANGEDCO, Greater Chennai Corporation, Highways Dept, Anna University Civil Dept, PSG Tech, NIT Trichy)",
+  "ai_summary": "Crisp 1-2 sentence engineering description in English",
+  "recommended_partner": "Suggested Tamil Nadu agency or academic partner (e.g. CMWSSB, TWAD, TANGEDCO, Greater Chennai Corporation, Highways Dept, Anna University Civil Dept, PSG Tech, NIT Trichy)",
   "recommended_action": "1-2 immediate physical interventions needed",
-  "confidence_score": 0.97
-}
-`;
+  "confidence_score": 0.98
+}`
+          },
+          {
+            role: 'user',
+            content: `Title: "${title}"
+Description: "${description}"
+District: "${district}"
+Landmark: "${landmark || 'Not specified'}"`
+          }
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.2
+      });
 
-      const result = await model.generateContent(prompt);
-      const textResponse = result.response.text();
-      // Clean up markdown block if model included it
-      const cleanJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(cleanJson);
+      const responseText = completion.choices[0]?.message?.content;
+      const parsed = JSON.parse(responseText);
       return {
         ...parsed,
-        source: 'Google Gemini 1.5 Flash'
+        source: 'Groq Cloud (GPT-OSS-120B)'
       };
     } catch (err) {
-      console.warn('⚠️ Gemini API call failed or timed out. Falling back to local civic engine:', err.message);
+      console.warn('⚠️ Groq API call failed. Falling back to local civic engine:', err.message);
     }
   }
 

@@ -82,7 +82,7 @@ app.get('/api/health', (req, res) => {
     platform: 'CIVICFORCE - Tamil Nadu Societal Challenge Platform',
     version: '2.0.0-PROD',
     supabase_connected: isSupabaseConfigured(),
-    ai_engine: process.env.GEMINI_API_KEY ? 'Google Gemini 1.5 Flash' : 'Civic Heuristic Neural Engine (Built-in)',
+    ai_engine: process.env.GROQ_API_KEY ? 'Groq Llama-3.3-70b Cloud' : (process.env.GEMINI_API_KEY ? 'Google Gemini 1.5 Flash' : 'Civic Heuristic Neural Engine (Built-in)'),
     timestamp: new Date().toISOString()
   });
 });
@@ -378,6 +378,6 @@ app.listen(PORT, () => {
   console.log(`🚀 CIVICFORCE Enterprise Backend Running on port ${PORT}`);
   console.log(`🔗 API Base: http://localhost:${PORT}/api`);
   console.log(`💾 Storage: ${isSupabaseConfigured() ? 'Supabase Cloud DB' : 'SQLite WAL Engine (Local)'}`);
-  console.log(`🤖 AI Engine: ${process.env.GEMINI_API_KEY ? 'Google Gemini 1.5' : 'Civic Heuristic Neural Engine'}`);
+  console.log(`🤖 AI Engine: ${process.env.GROQ_API_KEY ? 'Groq Llama-3.3-70b Cloud' : 'Civic Heuristic Neural Engine'}`);
   console.log(`=======================================================`);
 });
