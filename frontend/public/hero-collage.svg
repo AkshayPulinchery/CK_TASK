@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Abstract collage of Tamil Nadu civic life">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071b2c"/>
+      <stop offset="0.55" stop-color="#0b2b3c"/>
+      <stop offset="1" stop-color="#0f3b45"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f6dc88" stop-opacity="0.85"/>
+      <stop offset="0.6" stop-color="#d4af37" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#d4af37" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="templeCard" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#164a4b"/>
+      <stop offset="1" stop-color="#0a2535"/>
+    </linearGradient>
+    <linearGradient id="cityCard" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d3348"/>
+      <stop offset="0.6" stop-color="#114a52"/>
+      <stop offset="1" stop-color="#07202f"/>
+    </linearGradient>
+    <linearGradient id="seaCard" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a5a5f"/>
+      <stop offset="0.55" stop-color="#0d3a4a"/>
+      <stop offset="1" stop-color="#071b2c"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#006a4e"/>
+      <stop offset="0.5" stop-color="#2fa886"/>
+      <stop offset="1" stop-color="#0b3f46"/>
+    </linearGradient>
+    <pattern id="grid" width="46" height="46" patternUnits="userSpaceOnUse">
+      <path d="M46 0H0v46" fill="none" stroke="#ffffff" stroke-opacity="0.045" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+
+  <!-- warm sun glow -->
+  <circle cx="1210" cy="230" r="330" fill="url(#sun)"/>
+  <circle cx="1210" cy="230" r="92" fill="#e8c65c" opacity="0.5"/>
+
+  <!-- soft contour lines, like a district map -->
+  <g fill="none" stroke="#8fe3cd" stroke-opacity="0.10" stroke-width="2">
+    <path d="M-40 690c180-90 320-70 470 10s320 120 520 40 330-40 470 30 200 60 300 20"/>
+    <path d="M-40 740c190-80 330-60 480 20s310 110 510 30 340-30 480 40 210 50 310 10"/>
+    <path d="M-40 790c200-70 340-50 490 30s300 100 500 20 350-20 490 50 220 40 320 0"/>
+  </g>
+
+  <!-- collage panel: temple gopuram at dawn -->
+  <g transform="rotate(-6 400 420)">
+    <rect x="150" y="130" width="500" height="590" rx="26" fill="url(#templeCard)" stroke="#ffffff" stroke-opacity="0.14" stroke-width="6"/>
+    <rect x="150" y="130" width="500" height="590" rx="26" fill="url(#grid)"/>
+    <circle cx="540" cy="250" r="120" fill="#d4af37" opacity="0.28"/>
+    <g fill="#061521">
+      <path d="M330 650h140v-60h-30v-45h-25v-40h-30v-50h-25v50h-30v40h-25v45h-30z"/>
+      <path d="M250 650h80v-38h-18v-30h-16v-26h-12v26h-16v30h-18z"/>
+      <path d="M470 650h80v-30h-16v-24h-14v-20h-10v20h-14v24h-16z"/>
+    </g>
+    <g fill="#e8c65c" opacity="0.8">
+      <rect x="386" y="470" width="10" height="16" rx="2"/>
+      <rect x="378" y="515" width="10" height="16" rx="2"/>
+      <rect x="404" y="515" width="10" height="16" rx="2"/>
+      <rect x="342" y="560" width="12" height="18" rx="2"/>
+      <rect x="422" y="560" width="12" height="18" rx="2"/>
+    </g>
+    <path d="M150 560c110-40 220-20 320 20s150 45 180 35v105H150z" fill="#0a2b38" opacity="0.9"/>
+  </g>
+
+  <!-- collage panel: modern Chennai skyline -->
+  <g transform="rotate(4 820 430)">
+    <rect x="610" y="110" width="520" height="660" rx="26" fill="url(#cityCard)" stroke="#ffffff" stroke-opacity="0.14" stroke-width="6"/>
+    <rect x="610" y="110" width="520" height="660" rx="26" fill="url(#grid)"/>
+    <circle cx="710" cy="250" r="86" fill="#e8c65c" opacity="0.25"/>
+    <g fill="#05131e">
+      <rect x="650" y="480" width="80" height="230"/>
+      <rect x="742" y="420" width="64" height="290"/>
+      <rect x="818" y="330" width="52" height="380"/>
+      <rect x="880" y="470" width="90" height="240"/>
+      <rect x="982" y="400" width="70" height="310"/>
+      <path d="M840 330h8v-70h-8z"/>
+      <path d="M844 260l10 22h-20z"/>
+    </g>
+    <g fill="#f0d276" opacity="0.75">
+      <rect x="666" y="500" width="10" height="14" rx="1"/>
+      <rect x="692" y="530" width="10" height="14" rx="1"/>
+      <rect x="756" y="450" width="9" height="13" rx="1"/>
+      <rect x="776" y="490" width="9" height="13" rx="1"/>
+      <rect x="832" y="370" width="8" height="12" rx="1"/>
+      <rect x="850" y="410" width="8" height="12" rx="1"/>
+      <rect x="900" y="500" width="10" height="14" rx="1"/>
+      <rect x="934" y="540" width="10" height="14" rx="1"/>
+      <rect x="1000" y="430" width="9" height="13" rx="1"/>
+      <rect x="1024" y="480" width="9" height="13" rx="1"/>
+    </g>
+    <path d="M610 610c120-35 250-15 360 20s130 35 160 25v115H610z" fill="#0a3140" opacity="0.95"/>
+  </g>
+
+  <!-- collage panel: marina lighthouse and sea -->
+  <g transform="rotate(-3 1290 430)">
+    <rect x="1140" y="170" width="380" height="520" rx="26" fill="url(#seaCard)" stroke="#ffffff" stroke-opacity="0.14" stroke-width="6"/>
+    <rect x="1140" y="170" width="380" height="520" rx="26" fill="url(#grid)"/>
+    <circle cx="1310" cy="290" r="70" fill="#e8c65c" opacity="0.38"/>
+    <g fill="#05131e">
+      <path d="M1292 610h36l-7-210h-22z"/>
+      <rect x="1282" y="390" width="56" height="20" rx="4"/>
+      <rect x="1300" y="330" width="20" height="60"/>
+      <circle cx="1310" cy="320" r="16"/>
+    </g>
+    <circle cx="1310" cy="320" r="22" fill="#f6e3a1" opacity="0.35"/>
+    <path d="M1140 560c70-30 140-20 200 10s130 30 180 10v110h-380z" fill="#0b3a44"/>
+    <g fill="none" stroke="#8fe3cd" stroke-opacity="0.35" stroke-width="3">
+      <path d="M1160 590c60-24 120-16 170 8s100 26 150 12"/>
+      <path d="M1160 620c64-22 126-14 176 10s96 22 146 10"/>
+      <path d="M1160 650c68-20 132-12 182 12s92 18 142 8"/>
+    </g>
+  </g>
+
+  <!-- flowing emerald ribbon tying the collage together -->
+  <path d="M-80 830c250-110 430-40 610 30s390 90 610 0 290-90 560-30v130H-80z" fill="url(#wave)" opacity="0.5"/>
+  <path d="M-80 870c260-90 440-20 620 40s380 60 600-10 300-60 560-10v90H-80z" fill="#06202d" opacity="0.85"/>
+
+  <!-- small gold accents -->
+  <g fill="#d4af37" opacity="0.5">
+    <circle cx="1130" cy="120" r="5"/>
+    <circle cx="540" cy="90" r="4"/>
+    <circle cx="1520" cy="780" r="6"/>
+    <circle cx="90" cy="660" r="4"/>
+  </g>
+</svg>
